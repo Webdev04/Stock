@@ -73,7 +73,10 @@ def getData(Time,counter):
             res=requests.get(url,headers=headers)
             break
         except requests.exceptions.ConnectionError:
+            root=Tk()
+            root.withdraw()
             msgbox=messagebox.showerror('Error','Please check your connection re-trying in 5 seconds')
+            root.destroy()  
             time.sleep(5)
     htmlContent=res.content
     soup=BeautifulSoup(htmlContent,'html.parser')
@@ -87,7 +90,10 @@ def getData(Time,counter):
                     res=requests.get(url,headers=headers)
                     break
                 except requests.exceptions.ConnectionError:
+                    root=Tk()
+                    root.withdraw()
                     msgbox=messagebox.showerror('Error','Please check your connection re-trying in 5 seconds')
+                    root.destroy()
                     time.sleep(5)
             htmlContent=res.content
             soup=BeautifulSoup(htmlContent,'html.parser')
@@ -438,19 +444,24 @@ def autoRefresh(interval,stName):
     min=int(getTime[14:16])
     hr=int(getTime[11:13])
     sec=int(getTime[17:19])
-    if getTime[11:16]=="09:20":
-            count=1
-            getData(getTime,count)
-    
-    while (int(min)%interval!=0):
-        time.sleep(60-sec)
-        getTime=str(datetime.datetime.now())
-        min=int(getTime[14:16]) 
-        sec=int(getTime[17:19])
     try:
         os.makedirs(newPath)
     except FileExistsError:
         pass
+    if getTime[11:16]=="09:20":
+            count=1
+            path=getData(getTime,count)
+            shutil.copy(path,newPath)
+            try:
+                shutil.copy(chartPath,newPath)
+            except FileNotFoundError:
+                pass
+    
+    while (int(min)%(interval/60)!=0):
+        time.sleep(60-sec)
+        getTime=str(datetime.datetime.now())
+        min=int(getTime[14:16]) 
+        sec=int(getTime[17:19])
     while hr<=15:
         getTime=str(datetime.datetime.now())
         sec=int(getTime[17:19])
