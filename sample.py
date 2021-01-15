@@ -61,7 +61,7 @@ prevFile=''
 firstFile=''
 prevCopy=''
 def getData(Time,counter):
-    if(stockName=='NIFTY'or stockName=='BANKNIFTY'):
+    if(stockName=='NIFTY'or stockName=='BANKNIFTY' or stockName=='FINNIFTY'):
         url="https://www.nseindia.com/api/option-chain-indices?symbol="+stockName
     else:
         url="https://www.nseindia.com/api/option-chain-equities?symbol="+stockName
@@ -118,10 +118,10 @@ def writeValues(info,setTime,counter):
     Date=datetime.datetime.now()
     Date=Date.strftime('%d-%m-%Y')
     try:
-        os.makedirs('C:\\'+stockName+"Options\\"+Date)
+        os.makedirs('C:\\'+stockName+" options\\"+Date)
     except FileExistsError:
         pass
-    path='C:\\'+stockName+"Options\\"+Date+"\\"+stockName+"-"+Time+" "+str(price)+" .xlsx"
+    path='C:\\'+stockName+" options\\"+Date+"\\"+stockName+"-"+Time+" "+str(price)+" .xlsx"
     sheet=stockName
     titles['G1']=price
     createExcelFile(Path=path,sheetName=sheet)
@@ -135,18 +135,35 @@ def writeValues(info,setTime,counter):
     date=info["records"]["expiryDates"][0]
     ED=info["records"]['data'][0]['expiryDate']
     SP2=info["records"]['data'][0]['strikePrice']
+    l=len(info['records']['data'])
+    Sps=[l]
+    for i in range(0,l):
+        tempSp=info["records"]['data'][i]['strikePrice']
+        ED=info['records']['data'][i]['expiryDate']
+        if(ED==date):
+            Sps.insert(i,tempSp)
+    if 'PE' in info['records']['data'][0]:
+        select='PE'
+    else:
+        select='CE'
     SP1=0
-    count=1
-    while(1):
-        if(date==ED and SP1!=SP2):
-            break
-        SP1=SP2
-        ED=info['records']['data'][count]['expiryDate']
-        SP2=info['records']['data'][count]['strikePrice']
-        count=count+1
-    if(date==ED and SP2!=0):
-        diff=int(SP2)-int(SP1)
-    sub=diff*6 
+    index=0
+    UV=info["records"]["data"][0][select]['underlyingValue']
+    UV=float(UV)
+    UV=round(UV)
+    diff=Sps[len(Sps)-1]
+    index=0
+    for i in range(len(Sps)-1):
+        sp=Sps[i]
+        if(sp-UV<diff and sp-UV>-1):
+            diff=sp-UV
+            index=i
+    max=Sps[len(Sps)-1]
+    min=Sps[0]
+    if(index-6>-1):
+        min=Sps[index-6]
+    if(index+6<len(Sps)):
+        max=Sps[index+6]
     for i in range(2):
             row=3
             SP1=00
@@ -160,18 +177,6 @@ def writeValues(info,setTime,counter):
                         VOL=item[select]["totalTradedVolume"]
                         UV=item[select]["underlyingValue"]
                         CHG=item[select]["change"]
-                        if(int(UV)%diff==0):
-                            min=int(UV-sub)
-                            max=int(UV+sub)
-                        else:
-                            if(int(UV)%diff>=(diff/2)):
-                                    UV=int(UV+(diff-(UV%diff)))
-                                    min=UV-sub
-                                    max=UV+sub
-                            else:
-                                    UV=int(UV-UV%diff)
-                                    min=UV-sub
-                                    max=UV+sub
                         if ED==date and SP>=min and SP<=max:
                             if select=='CE':
                                 ws.cell(row=row,column=1).value=OI
@@ -286,7 +291,7 @@ def writeCoiChange(Path):
 def createChart():
     Date=datetime.datetime.now()
     Date=Date.strftime('%d-%m-%Y')
-    path='C:\\'+stockName+"Options\\"+Date+"\\"+stockName+'Chart.xlsx'
+    path='C:\\'+stockName+" options\\"+Date+"\\"+stockName+'Chart.xlsx'
     sheet=stockName+'Chart'
     createExcelFile(Path=path,sheetName=sheet)
     wb=openpyxl.load_workbook(path)
@@ -353,7 +358,7 @@ def Delete():
                 if temp == selected[i]:
                     selected.remove(temp)
                     p=processes[i]
-                    shutil.rmtree('C:\\'+stockName+"Options")
+                    shutil.rmtree('C:\\'+stockName+" options")
                     p.terminate()
                     processes.remove(p)
             flag=1
@@ -404,7 +409,7 @@ def Choice():
     cb['values']=["AARTIIND","ACC","ADANIENT","ADANIPORTS","AMARAJABAT","AMBUJACEM","APOLLOHOSP","APOLLOTYRE","ASHOKLEY","ASIANPAINT","AUROPHARMA","AXISBANK","BAJAJ-AUTO","BAJAJFINSV","BAJFINANCE",
     "BALKRISIND","BANDHANBNK","BANKBARODA","BATAINDIA","BEL","BERGEPAINT","BHARATFORG","BHARTIARTL","BHEL","BIOCON","BOSCHLTD","BPCL","BRITANNIA",
     "CADILAHC","CANBK","CHOLAFIN","CIPLA","COALINDIA","COFORGE","COLPAL","CONCOR","CUMMINSIND","DABUR","DIVISLAB","DLF","DRREDDY","EICHERMOT",
-    "ESCORTS","EXIDEIND","FEDERALBNK","GAIL","GLENMARK","GMRINFRA","GODREJCP","GODREJPROP","GRASIM","HAVELLS","HCLTECH","HDFC","HDFCAMC","HDFCBANK","HDFCLIFE",
+    "ESCORTS","EXIDEIND","FEDERALBNK","FINNIFTY","GAIL","GLENMARK","GMRINFRA","GODREJCP","GODREJPROP","GRASIM","HAVELLS","HCLTECH","HDFC","HDFCAMC","HDFCBANK","HDFCLIFE",
     "HEROMOTOCO","HINDALCO","HINDPETRO","HINDUNILVR","IBULHSGFIN","ICICIBANK","ICICIGI","ICICIPRULI","IDEA","IDFCFIRSTB","IGL","INDIGO","INDUSINDBK",
     "INDUSTOWER","INFRATEL","INFY","IOC","ITC","JINDALSTEL","JSWSTEEL","JUBLFOOD","KOTAKBANK","L&TFH","LALPATHLAB","LICHSGFIN","LT","LUPIN","M&M",
     "M&MFIN","MANAPPURAM","MARICO","MARUTI","MCDOWELL-N","MFSL","MGL","MINDTREE","MOTHERSUMI","MRF","MUTHOOTFIN","NATIONALUM","NAUKRI","NESTLEIND",
@@ -437,8 +442,8 @@ def autoRefresh(interval,stName):
     stockName=stName
     Date=datetime.datetime.now()
     Date=Date.strftime('%d-%m-%Y')
-    chartPath='C:\\'+stockName+"Options\\"+Date+"\\"+stockName+'Chart.xlsx'
-    newPath=stockName+"Options\\"+Date
+    chartPath='C:\\'+stockName+" options\\"+Date+"\\"+stockName+'Chart.xlsx'
+    newPath=stockName+" options\\"+Date
     count=1
     getTime=str(datetime.datetime.now())
     min=int(getTime[14:16])
@@ -457,12 +462,12 @@ def autoRefresh(interval,stName):
             except FileNotFoundError:
                 pass
     
-    while (int(min)%(interval/60)!=0):
-        time.sleep(60-sec)
-        getTime=str(datetime.datetime.now())
-        min=int(getTime[14:16]) 
-        sec=int(getTime[17:19])
-    while hr<=15:
+    # while (int(min)%(interval/60)!=0):
+    #     time.sleep(60-sec)
+    #     getTime=str(datetime.datetime.now())
+    #     min=int(getTime[14:16]) 
+    #     sec=int(getTime[17:19])
+    while hr>=15:
         getTime=str(datetime.datetime.now())
         sec=int(getTime[17:19])
         path=getData(getTime,count)
@@ -482,6 +487,6 @@ def autoRefresh(interval,stName):
             shutil.copy(chartPath,newPath)
         except FileNotFoundError:
             pass
-    shutil.rmtree('C:\\'+stockName+"Options")
+    shutil.rmtree('C:\\'+stockName+" options")
 if __name__ == "__main__":
     Choice()
