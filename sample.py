@@ -188,6 +188,15 @@ def writeValues(info,setTime,counter):
                             if(SP in Chk):
                                     pos=Chk.index(SP)
                                     if(pos==0):
+                                        CE.append(SP)
+                                        ws.cell(row=row,column=1).value=OI
+                                        ws.cell(row=row,column=2).value=COI
+                                        ws.cell(row=row,column=3).value=VOL
+                                        ws.cell(row=row,column=4).value=LTP
+                                        ws.cell(row=row,column=5).value=CHG
+                                        ws.cell(row=row,column=7).value=SP
+                                        sum1=sum1+COI
+                                        row=row+1
                                         continue
                                     try:
                                         if(CE[pos-1]==Chk[pos-1]):
@@ -220,6 +229,14 @@ def writeValues(info,setTime,counter):
                             if(SP in Chk):
                                 pos=Chk.index(SP)
                                 if(pos==0):
+                                    PE.append(SP)
+                                    ws.cell(row=row,column=9).value=CHG
+                                    ws.cell(row=row,column=10).value=LTP
+                                    ws.cell(row=row,column=11).value=VOL
+                                    ws.cell(row=row,column=12).value=COI
+                                    ws.cell(row=row,column=13).value=OI
+                                    sum2=sum2+COI
+                                    row=row+1
                                     continue
                                 try:
                                     if(PE[pos-1]==Chk[pos-1]):
