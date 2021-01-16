@@ -66,7 +66,10 @@ def getData(Time,counter):
     else:
         url="https://www.nseindia.com/api/option-chain-equities?symbol="+stockName
     headers={
-        'User-Agent':'Chrome/87.0.4280.88' ,
+        'User-Agent':"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36",
+        'Referer':'https://www.google.com/',
+        'Accept-Encoding': 'gzip', 
+        'Accept-Language': 'en-CA,en;q=0.9,hi-IN;q=0.8,hi;q=0.7,en-GB;q=0.6,en-US;q=0.5',
     }
     while(1):
         try:
@@ -142,13 +145,9 @@ def writeValues(info,setTime,counter):
         ED=info['records']['data'][i]['expiryDate']
         if(ED==date):
             Sps.insert(i,tempSp)
-    if 'PE' in info['records']['data'][0]:
-        select='PE'
-    else:
-        select='CE'
     SP1=0
     index=0
-    UV=info["records"]["data"][0][select]['underlyingValue']
+    UV=info["records"]["underlyingValue"]
     UV=float(UV)
     UV=round(UV)
     diff=Sps[len(Sps)-1]
@@ -164,37 +163,90 @@ def writeValues(info,setTime,counter):
         min=Sps[index-6]
     if(index+6<len(Sps)):
         max=Sps[index+6]
+    CE=[]
+    PE=[]
+    Chk=[]
+    for i in range(len(Sps)):
+        item=Sps[i]
+        if item>=min and item<=max:
+            Chk.insert(i,item)
     for i in range(2):
-            row=3
-            SP1=00
-            for item in info["records"]["data"]:
-                if select in item:
-                        ED=item[select]["expiryDate"]                                                                                                          
-                        SP=item[select]["strikePrice"]
-                        OI=item[select]["openInterest"]
-                        COI=item[select]["changeinOpenInterest"]
-                        LTP=item[select]["lastPrice"]
-                        VOL=item[select]["totalTradedVolume"]
-                        UV=item[select]["underlyingValue"]
-                        CHG=item[select]["change"]
-                        if ED==date and SP>=min and SP<=max:
-                            if select=='CE':
-                                ws.cell(row=row,column=1).value=OI
-                                ws.cell(row=row,column=2).value=COI
-                                ws.cell(row=row,column=3).value=VOL
-                                ws.cell(row=row,column=4).value=LTP
-                                ws.cell(row=row,column=5).value=CHG
-                                ws.cell(row=row,column=7).value=SP
-                                sum1=sum1+COI
-                            else:
-                                ws.cell(row=row,column=9).value=CHG
-                                ws.cell(row=row,column=10).value=LTP
-                                ws.cell(row=row,column=11).value=VOL
-                                ws.cell(row=row,column=12).value=COI
-                                ws.cell(row=row,column=13).value=OI
-                                sum2=sum2+COI
-                            row+=1
-            select='PE'
+        row=3
+        SP1=00
+        for item in info["records"]["data"]:
+            if select in item:
+                    ED=item[select]["expiryDate"]                                                                                                          
+                    SP=item[select]["strikePrice"]
+                    OI=item[select]["openInterest"]
+                    COI=item[select]["changeinOpenInterest"]
+                    LTP=item[select]["lastPrice"]
+                    VOL=item[select]["totalTradedVolume"]
+                    UV=item[select]["underlyingValue"]
+                    CHG=item[select]["change"]
+                    if ED==date and SP>=min and SP<=max:
+                        if select=='CE':
+                            if(SP in Chk):
+                                    pos=Chk.index(SP)
+                                    if(pos==0):
+                                        continue
+                                    try:
+                                        if(CE[pos-1]==Chk[pos-1]):
+                                            CE.append(SP)
+                                            ws.cell(row=row,column=1).value=OI
+                                            ws.cell(row=row,column=2).value=COI
+                                            ws.cell(row=row,column=3).value=VOL
+                                            ws.cell(row=row,column=4).value=LTP
+                                            ws.cell(row=row,column=5).value=CHG
+                                            ws.cell(row=row,column=7).value=SP
+                                            sum1=sum1+COI
+                                    except IndexError:
+                                        CE.append(Chk[pos-1])
+                                        ws.cell(row=row,column=1).value=0
+                                        ws.cell(row=row,column=2).value=0
+                                        ws.cell(row=row,column=3).value=0
+                                        ws.cell(row=row,column=4).value=0
+                                        ws.cell(row=row,column=5).value=0
+                                        ws.cell(row=row,column=7).value=Chk[pos-1]
+                                        row=row+1
+                                        CE.append(SP)
+                                        ws.cell(row=row,column=1).value=OI
+                                        ws.cell(row=row,column=2).value=COI
+                                        ws.cell(row=row,column=3).value=VOL
+                                        ws.cell(row=row,column=4).value=LTP
+                                        ws.cell(row=row,column=5).value=CHG
+                                        ws.cell(row=row,column=7).value=SP
+                                        sum1=sum1+COI
+                        else:
+                            if(SP in Chk):
+                                pos=Chk.index(SP)
+                                if(pos==0):
+                                    continue
+                                try:
+                                    if(PE[pos-1]==Chk[pos-1]):
+                                        PE.append(SP)
+                                        ws.cell(row=row,column=9).value=CHG
+                                        ws.cell(row=row,column=10).value=LTP
+                                        ws.cell(row=row,column=11).value=VOL
+                                        ws.cell(row=row,column=12).value=COI
+                                        ws.cell(row=row,column=13).value=OI
+                                        sum2=sum2+COI
+                                except IndexError:
+                                    PE.append(Chk[pos-1])
+                                    ws.cell(row=row,column=9).value=0
+                                    ws.cell(row=row,column=10).value=0
+                                    ws.cell(row=row,column=11).value=0
+                                    ws.cell(row=row,column=12).value=0
+                                    ws.cell(row=row,column=13).value=0
+                                    row=row+1
+                                    PE.append(SP)
+                                    ws.cell(row=row,column=9).value=CHG
+                                    ws.cell(row=row,column=10).value=LTP
+                                    ws.cell(row=row,column=11).value=VOL
+                                    ws.cell(row=row,column=12).value=COI
+                                    ws.cell(row=row,column=13).value=OI
+                                    sum2=sum2+COI
+                        row+=1
+        select='PE'
     ws['B18'].value=sum1
     ws['J18'].value=sum2
     ws["L18"].value=(sum1-sum2)
@@ -461,13 +513,12 @@ def autoRefresh(interval,stName):
                 shutil.copy(chartPath,newPath)
             except FileNotFoundError:
                 pass
-    
-    # while (int(min)%(interval/60)!=0):
-    #     time.sleep(60-sec)
-    #     getTime=str(datetime.datetime.now())
-    #     min=int(getTime[14:16]) 
-    #     sec=int(getTime[17:19])
-    while hr>=15:
+    while (int(min)%(interval/60)!=0):
+        time.sleep(60-sec)
+        getTime=str(datetime.datetime.now())
+        min=int(getTime[14:16]) 
+        sec=int(getTime[17:19])
+    while hr<=15:
         getTime=str(datetime.datetime.now())
         sec=int(getTime[17:19])
         path=getData(getTime,count)
