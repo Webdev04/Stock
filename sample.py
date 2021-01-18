@@ -73,6 +73,7 @@ def getData(Time,counter):
     }
     while(1):
         try:
+            res=requests.session()
             res=requests.get(url,headers=headers)
             break
         except requests.exceptions.ConnectionError:
@@ -90,6 +91,7 @@ def getData(Time,counter):
         except json.decoder.JSONDecodeError:
             while(1):
                 try:
+                    res=requests.session()
                     res=requests.get(url,headers=headers)
                     break
                 except requests.exceptions.ConnectionError:
