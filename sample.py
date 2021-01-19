@@ -310,13 +310,15 @@ def writeCoiChange(Path):
             }
         for title in firstFileTitle:
                 ws4[title].value=firstFileTitle[title]   
+    index=prevFile.index('-')
+    index1=firstFile.index('-')
     if(firstFile!=prevFile):
-        ws4['G1'].value=(prevFile[6:11].replace('.',':'))
-        ws4['Q1'].value=(prevFile[6:11].replace('.',':'))
-        ws4['M1'].value=(firstFile[6:11].replace('.',':'))
+        ws4['G1'].value=(prevFile[index+1:index+6].replace('.',':'))
+        ws4['Q1'].value=(prevFile[index+1:index+6].replace('.',':'))
+        ws4['M1'].value=(firstFile[index1+1:index1+6].replace('.',':'))
     else:
-        ws4['I1'].value=(firstFile[6:11].replace('.',':'))
-    ws4['C1'].value=(firstFile[6:11].replace('.',':'))
+        ws4['I1'].value=(firstFile[index1+1:index1+6].replace('.',':'))
+    ws4['C1'].value=(firstFile[index1+1:index1+6].replace('.',':'))
     fi=ws.max_row
     OIcol=1
     VOLcol=3
