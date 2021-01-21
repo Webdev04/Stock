@@ -310,8 +310,8 @@ def writeCoiChange(Path):
             }
         for title in firstFileTitle:
                 ws4[title].value=firstFileTitle[title]   
-    index=prevFile.index('-')
-    index1=firstFile.index('-')
+    index=prevFile.rindex('-')
+    index1=firstFile.rindex('-')
     if(firstFile!=prevFile):
         ws4['G1'].value=(prevFile[index+1:index+6].replace('.',':'))
         ws4['Q1'].value=(prevFile[index+1:index+6].replace('.',':'))
