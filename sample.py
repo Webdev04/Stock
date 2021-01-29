@@ -42,20 +42,23 @@ chartData={
 }
 coiTitles={
     'A1':'CALLS',
-    'K1':'PUTS',
+    'G1':'PUTS',
+    'K1':'CALLS',
+    'Q1':'PUTS',
     'A2':"OI",
     'B2':"VOL",
     'C2':"OI/VOL",
-    'E2':"OI",
-    'F2':"VOL",
-    'G2':"OI/VOL",
-    'I2':"STRIKE PRICE",
+    'E2':"STRIKE PRICE",
+    'G2':"OI",
+    'H2':"VOL",
+    'I2':"OI/VOL",
     'K2':"OI",
     'L2':"VOL",
     'M2':"OI/VOL",
-    'O2':"OI",
-    'P2':"VOL",
-    'Q2':"OI/VOL",   
+    'O2':"STRIKE PRICE",
+    'Q2':"OI",
+    'R2':"VOL",
+    'S2':"OI/VOL",   
 }
 prevFile=''
 firstFile=''
@@ -311,14 +314,13 @@ def writeCoiChange(Path):
         for title in firstFileTitle:
                 ws4[title].value=firstFileTitle[title]   
     index=prevFile.rindex('-')
-    index1=firstFile.rindex('-')
     if(firstFile!=prevFile):
-        ws4['G1'].value=(prevFile[index+1:index+6].replace('.',':'))
-        ws4['Q1'].value=(prevFile[index+1:index+6].replace('.',':'))
-        ws4['M1'].value=(firstFile[index1+1:index1+6].replace('.',':'))
+        ws4['I1'].value=(firstFile[index+1:index+6].replace('.',':'))
+        ws4['S1'].value=(prevFile[index+1:index+6].replace('.',':'))
+        ws4['M1'].value=(prevFile[index+1:index+6].replace('.',':'))
     else:
-        ws4['I1'].value=(firstFile[index1+1:index1+6].replace('.',':'))
-    ws4['C1'].value=(firstFile[index1+1:index1+6].replace('.',':'))
+        ws4['I1'].value=(firstFile[index+1:index+6].replace('.',':'))
+    ws4['C1'].value=(firstFile[index+1:index+6].replace('.',':'))
     fi=ws.max_row
     OIcol=1
     VOLcol=3
@@ -334,27 +336,33 @@ def writeCoiChange(Path):
                     OI2=(int)(ws.cell(row=j,column=OIcol).value)
                     VOL2=int(ws.cell(row=j,column=VOLcol).value)
                     SP2=ws.cell(row=j,column=7).value
-                    if(SP1==SP2):#pre
+                    if(SP1==SP2):
                         ws4.cell(row,col+1).value=VOL2-VOL1
                         ws4.cell(row,col).value=OI2-OI1
                         if(VOL2-VOL1!=0):
                                 ws4.cell(row,col+2).value=((OI2-OI1)/(VOL2-VOL1))
                         else:
                                 ws4.cell(row,col+2).value='∞'
-                        if(count==0 and firstFile!=prevFile):
-                            ws4.cell(row,9).value=SP2
-                        elif(count==0 and firstFile==prevFile):
+                        if(count==0 and firstFile==prevFile):
                             ws4.cell(row,5).value=SP2
+                        elif(firstFile!=prevFile):
+                            if(count==0):
+                                ws4.cell(row,5).value=SP2
+                            elif(count==2):
+                                ws4.cell(row,15).value=SP2
                         row=row+1
+        if(count==0 or count==2):
+            OIcol=13
+            VOLcol=11   
+        else:
+            OIcol=1
+            VOLcol=3
         if(prevFile==firstFile):
             count=count+1
             col=7
         else:
-            col=((col+4,col+6))[col+4==9]
-            tempWs=(ws3,ws2)[count%2==0]
-        if(count==1):
-            OIcol=13
-            VOLcol=11   
+            col=((col+6,col+4))[col+6==13]
+            tempWs=(ws2,ws3)[count<1]
     wb.save(Path)
     wb.close()
     wb2.close()
@@ -508,7 +516,11 @@ def Choice():
     b3.place(x=100,y=325,height=35,width=150)
     window.title('Stock data updater')
     window.resizable(0,0)
+    window.protocol("WM_DELETE_WINDOW",lambda:closeWindow(window))
     window.mainloop()
+def closeWindow(wd):
+    if messagebox.askokcancel("Quit", "Do you want to quit?"):
+        wd.destroy()
 def autoRefresh(interval,stName):
     global stockName
     path=''
